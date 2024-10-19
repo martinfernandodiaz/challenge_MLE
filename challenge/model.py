@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
 
 from typing import Tuple, Union, List
 
@@ -13,10 +14,10 @@ class DelayModel:
         self._model = None # Model should be saved in this attribute.
 
     def preprocess(
-        self,
-        data: pd.DataFrame,
-        target_column: str = None
-    ) -> Union(Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame):
+            self,
+            data: pd.DataFrame,
+            target_column: str = None
+        ) -> Union[Tuple[pd.DataFrame, pd.DataFrame], pd.DataFrame]:
         """
         Prepare raw data for training or predict.
 
@@ -43,13 +44,13 @@ class DelayModel:
             check_features_for_nan(data, categorical_features)
 
             #dummies generation
-            data = get_dummies_features(data[categorical_features])
+            dummies = get_dummies_features(data, categorical_features)
 
             if target_column:
                 target = get_delay_feature(data, threshold_in_minutes)
-                return (data, target)
+                return (dummies, target)
             
-            return(data)
+            return(dummies)
 
         except (KeyError, ValueError) as e:
             print(f"Error: {e}")
@@ -68,6 +69,13 @@ class DelayModel:
             features (pd.DataFrame): preprocessed data.
             target (pd.DataFrame): target.
         """
+        
+        n_y0 = len(target[target['delay'] == 0])
+        n_y1 = len(target[target['delay'] == 1])
+        
+        self.model = LogisticRegression(class_weight={1: n_y0/len(target['delay']), 0: n_y1/len(target['delay'])})
+        self.model.fit(features, target['delay'])
+        
         return
 
     def predict(
