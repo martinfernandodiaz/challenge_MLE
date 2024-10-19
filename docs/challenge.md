@@ -14,4 +14,4 @@
 
 - About model selection: 
 
-    Both the XGboost model and the Linear Regression model have the same performance, I will select the Linear Regression model for its simplicity of interpretation, since it allows to easily explain to the bussiness how a prediction is made and why some characteristics are more important than others.
+    Both the XGboost model and the Linear Regression model have the same performance, I will select the Linear Regression model for its simplicity of interpretation, since it allows to easily explain to the bussiness how a prediction is made and why some features are more important than others.
