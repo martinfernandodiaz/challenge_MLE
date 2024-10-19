@@ -3,8 +3,8 @@ from sklearn.linear_model import LogisticRegression
 
 from typing import Tuple, Union, List
 
-from src.model_modules.transformations import get_delay_feature, get_dummies_features
-from src.model_modules.validations import check_missing_features, check_features_for_nan, check_datetime_format
+from challenge.src.model_modules.transformations import get_delay_feature, get_dummies_features
+from challenge.src.model_modules.validations import check_missing_features, check_features_for_nan, check_datetime_format
 
 class DelayModel:
 
@@ -38,6 +38,20 @@ class DelayModel:
             categorical_features = ['OPERA', 'TIPOVUELO', 'MES'] 
             dates_features = ['Fecha-O', 'Fecha-I']
             
+            #selected top features
+            top_10_features = [
+                            "OPERA_Latin American Wings", 
+                            "MES_7",
+                            "MES_10",
+                            "OPERA_Grupo LATAM",
+                            "MES_12",
+                            "TIPOVUELO_I",
+                            "MES_4",
+                            "MES_11",
+                            "OPERA_Sky Airline",
+                            "OPERA_Copa Air"
+                        ]
+            
             #basic checks
             check_missing_features(data, categorical_features + dates_features)
             check_datetime_format(data, dates_features, datetime_format="%Y-%m-%d %H:%M:%S")
@@ -48,9 +62,9 @@ class DelayModel:
 
             if target_column:
                 target = get_delay_feature(data, threshold_in_minutes)
-                return (dummies, target)
+                return (dummies[top_10_features], target)
             
-            return(dummies)
+            return(dummies[top_10_features])
 
         except (KeyError, ValueError) as e:
             print(f"Error: {e}")
@@ -73,8 +87,8 @@ class DelayModel:
         n_y0 = len(target[target['delay'] == 0])
         n_y1 = len(target[target['delay'] == 1])
         
-        self.model = LogisticRegression(class_weight={1: n_y0/len(target['delay']), 0: n_y1/len(target['delay'])})
-        self.model.fit(features, target['delay'])
+        self._model = LogisticRegression(class_weight={1: n_y0/len(target['delay']), 0: n_y1/len(target['delay'])})
+        self._model.fit(features, target['delay'])
         
         return
 
@@ -91,4 +105,8 @@ class DelayModel:
         Returns:
             (List[int]): predicted targets.
         """
-        return
+        pred_target = self._model.predict(features)
+        pred_target = [int(x) for x in pred_target]
+        
+        return pred_target
+    
