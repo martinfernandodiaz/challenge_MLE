@@ -13,6 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Set up Google Cloud authentication
+      - name: Set up Google Cloud authentication
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CICD_KEY }}
+      
+      # Deploy Cloud Run service
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy dev-apimodel --image ${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/model-microservice/dev-image:1.0.0 --platform managed --region us-central1 --allow-unauthenticated
+          gcloud run deploy dev-apimodel --project ${{ secrets.GCP_PROJECT_ID }} --image ${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/model-microservice/dev-image:1.0.0 --platform managed --region us-central1 --allow-unauthenticated
