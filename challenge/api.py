@@ -2,13 +2,15 @@ import fastapi
 from fastapi import HTTPException
 import pandas as pd
 
-#from model import DelayModel
+from model import DelayModel
 
-from challenge.model import DelayModel
+#to testing
+#from challenge.model import DelayModel
 
-#from src.api.schema.predict import ModelInput 
+from src.api.schema.predict import ModelInput 
 
-from challenge.src.api.schema.predict import ModelInput 
+#to testing
+#from challenge.src.api.schema.predict import ModelInput 
 
 app = fastapi.FastAPI()
 model = DelayModel()

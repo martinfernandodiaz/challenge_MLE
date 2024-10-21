@@ -5,19 +5,21 @@ from typing import Tuple, Union, List
 
 import pickle
 
-#from src.model.constants.features import CATEGORICAL, DATES, TOP
-#from src.model.constants.values import DATA_DICTIONARY
-#from src.model.constants.rules import TRESHOLD_IN_MINUTES
+from src.model.constants.features import CATEGORICAL, DATES, TOP
+from src.model.constants.values import DATA_DICTIONARY
+from src.model.constants.rules import TRESHOLD_IN_MINUTES
 
-from challenge.src.model.constants.features import CATEGORICAL, DATES, TOP
-from challenge.src.model.constants.values import DATA_DICTIONARY
-from challenge.src.model.constants.rules import TRESHOLD_IN_MINUTES
+#to testing
+#from challenge.src.model.constants.features import CATEGORICAL, DATES, TOP
+#from challenge.src.model.constants.values import DATA_DICTIONARY
+#from challenge.src.model.constants.rules import TRESHOLD_IN_MINUTES
 
-#from src.model.functions.transformations import get_delay_feature, get_dummies_features
-#from src.model.functions.validations import check_missing_features, check_features_for_nan, check_datetime_format, check_values
+from src.model.functions.transformations import get_delay_feature, get_dummies_features
+from src.model.functions.validations import check_missing_features, check_features_for_nan, check_datetime_format, check_values
 
-from challenge.src.model.functions.transformations import get_delay_feature, get_dummies_features
-from challenge.src.model.functions.validations import check_missing_features, check_features_for_nan, check_datetime_format, check_values
+#to testing
+#from challenge.src.model.functions.transformations import get_delay_feature, get_dummies_features
+#from challenge.src.model.functions.validations import check_missing_features, check_features_for_nan, check_datetime_format, check_values
 
 import os 
 
