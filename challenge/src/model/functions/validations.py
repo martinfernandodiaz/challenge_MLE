@@ -18,6 +18,12 @@ def check_datetime_format(df, features, datetime_format="%Y-%m-%d %H:%M:%S"):
     for datetime_feature in datetime_features:
         if datetime_feature.isna().any():
             raise ValueError("Incorrect data format, should be YYYY-MM-DD HH:MM:SS")
+        
+def check_values(df, feature, values):
+    all_in_features = df[feature].isin(values).all()
+    
+    if not all_in_features:
+        raise ValueError(f"Values in feature {feature} not allowed")
 
 
 

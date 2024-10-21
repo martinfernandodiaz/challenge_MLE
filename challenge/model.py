@@ -5,11 +5,19 @@ from typing import Tuple, Union, List
 
 import pickle
 
-from src.model.constants.features import CATEGORICAL, DATES, TOP
-from src.model.constants.rules import TRESHOLD_IN_MINUTES
+#from src.model.constants.features import CATEGORICAL, DATES, TOP
+#from src.model.constants.values import DATA_DICTIONARY
+#from src.model.constants.rules import TRESHOLD_IN_MINUTES
 
-from src.model.functions.transformations import get_delay_feature, get_dummies_features
-from src.model.functions.validations import check_missing_features, check_features_for_nan, check_datetime_format
+from challenge.src.model.constants.features import CATEGORICAL, DATES, TOP
+from challenge.src.model.constants.values import DATA_DICTIONARY
+from challenge.src.model.constants.rules import TRESHOLD_IN_MINUTES
+
+#from src.model.functions.transformations import get_delay_feature, get_dummies_features
+#from src.model.functions.validations import check_missing_features, check_features_for_nan, check_datetime_format, check_values
+
+from challenge.src.model.functions.transformations import get_delay_feature, get_dummies_features
+from challenge.src.model.functions.validations import check_missing_features, check_features_for_nan, check_datetime_format, check_values
 
 import os 
 
@@ -46,6 +54,9 @@ class DelayModel:
             check_missing_features(data, CATEGORICAL)
             check_features_for_nan(data, CATEGORICAL)
 
+            for category in CATEGORICAL:
+                check_values(data, category, DATA_DICTIONARY[category])
+
             #dummies generation
             dummies = get_dummies_features(data, CATEGORICAL)
 
@@ -56,13 +67,23 @@ class DelayModel:
 
                 target = get_delay_feature(data, TRESHOLD_IN_MINUTES)
                 return (dummies[TOP], target)
-            
-            return(dummies[TOP])
+            else:
+                #if no target
+                dummies_columns = dummies.columns
+
+                #detecting which created dummies are in the top dummies
+                avaible_top_dummies_columns = list(set(dummies_columns).intersection(set(TOP)))
+                
+                #if created dummies are not equal to top dummies, the remaining ones are created
+                if avaible_top_dummies_columns != TOP:
+                    to_false_columns = list(set(TOP) - set(avaible_top_dummies_columns))
+                    dummies[to_false_columns] = False
+
+                return (dummies[TOP])
 
         except (KeyError, ValueError) as e:
-            print(f"Error: {e}") #handler
+            return f"Error: {e}" #handler
         
-        return
 
     def fit(
         self,
@@ -93,9 +114,8 @@ class DelayModel:
                 pickle.dump(self._model, file)
 
         except (KeyError, ValueError) as e:
-            print(f"Error: {e}") #handler
+            return f"Error: {e}" #handler
         
-        return
 
     def predict(
         self,
@@ -122,5 +142,5 @@ class DelayModel:
 
             return pred_target
  
-        except FileNotFoundError:
-            print("Error: The model must be trained")
+        except FileNotFoundError as e:
+            return f"Error: {e}" #handler
