@@ -3,8 +3,18 @@ from sklearn.linear_model import LogisticRegression
 
 from typing import Tuple, Union, List
 
-from challenge.src.model_modules.transformations import get_delay_feature, get_dummies_features
-from challenge.src.model_modules.validations import check_missing_features, check_features_for_nan, check_datetime_format
+import pickle
+
+from src.model.constants.features import CATEGORICAL, DATES, TOP
+from src.model.constants.rules import TRESHOLD_IN_MINUTES
+
+from src.model.functions.transformations import get_delay_feature, get_dummies_features
+from src.model.functions.validations import check_missing_features, check_features_for_nan, check_datetime_format
+
+import os 
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(base_dir)
 
 class DelayModel:
 
@@ -12,6 +22,7 @@ class DelayModel:
         self
     ):
         self._model = None # Model should be saved in this attribute.
+
 
     def preprocess(
             self,
@@ -31,43 +42,25 @@ class DelayModel:
             pd.DataFrame: features.
         """
         try:
-            #bussiness rule
-            threshold_in_minutes = 15
-
-            #variables needed to preprocess raw data
-            categorical_features = ['OPERA', 'TIPOVUELO', 'MES'] 
-            dates_features = ['Fecha-O', 'Fecha-I']
-            
-            #selected top features
-            top_10_features = [
-                            "OPERA_Latin American Wings", 
-                            "MES_7",
-                            "MES_10",
-                            "OPERA_Grupo LATAM",
-                            "MES_12",
-                            "TIPOVUELO_I",
-                            "MES_4",
-                            "MES_11",
-                            "OPERA_Sky Airline",
-                            "OPERA_Copa Air"
-                        ]
-            
             #basic checks
-            check_missing_features(data, categorical_features + dates_features)
-            check_datetime_format(data, dates_features, datetime_format="%Y-%m-%d %H:%M:%S")
-            check_features_for_nan(data, categorical_features)
+            check_missing_features(data, CATEGORICAL)
+            check_features_for_nan(data, CATEGORICAL)
 
             #dummies generation
-            dummies = get_dummies_features(data, categorical_features)
+            dummies = get_dummies_features(data, CATEGORICAL)
 
             if target_column:
-                target = get_delay_feature(data, threshold_in_minutes)
-                return (dummies[top_10_features], target)
+                #if target, basic checks over needed features
+                check_missing_features(data, DATES)
+                check_datetime_format(data, DATES, datetime_format="%Y-%m-%d %H:%M:%S")
+
+                target = get_delay_feature(data, TRESHOLD_IN_MINUTES)
+                return (dummies[TOP], target)
             
-            return(dummies[top_10_features])
+            return(dummies[TOP])
 
         except (KeyError, ValueError) as e:
-            print(f"Error: {e}")
+            print(f"Error: {e}") #handler
         
         return
 
@@ -83,12 +76,24 @@ class DelayModel:
             features (pd.DataFrame): preprocessed data.
             target (pd.DataFrame): target.
         """
+        try:
+            #basic checks
+            check_missing_features(features, TOP)
+            check_features_for_nan(features, TOP)
+            check_features_for_nan(target, ['delay'])
+
+            n_y0 = len(target[target['delay'] == 0])
+            n_y1 = len(target[target['delay'] == 1])
+            
+            self._model = LogisticRegression(class_weight={1: n_y0/len(target['delay']), 0: n_y1/len(target['delay'])})
+            self._model.fit(features, target['delay'])
         
-        n_y0 = len(target[target['delay'] == 0])
-        n_y1 = len(target[target['delay'] == 1])
-        
-        self._model = LogisticRegression(class_weight={1: n_y0/len(target['delay']), 0: n_y1/len(target['delay'])})
-        self._model.fit(features, target['delay'])
+            #model serialization
+            with open('./src/model/registry/model.pkl', 'wb') as file:
+                pickle.dump(self._model, file)
+
+        except (KeyError, ValueError) as e:
+            print(f"Error: {e}") #handler
         
         return
 
@@ -105,8 +110,5 @@ class DelayModel:
         Returns:
             (List[int]): predicted targets.
         """
-        pred_target = self._model.predict(features)
-        pred_target = [int(x) for x in pred_target]
-        
-        return pred_target
+        return    
     
