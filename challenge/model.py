@@ -110,5 +110,17 @@ class DelayModel:
         Returns:
             (List[int]): predicted targets.
         """
-        return    
-    
+        try:
+            
+            if self._model == None:
+                # If not model. Load if exists
+                with open('./src/model/registry/model.pkl', 'rb') as file:
+                    self._model = pickle.load(file)
+            
+            pred_target = self._model.predict(features)
+            pred_target = [int(x) for x in pred_target]
+
+            return pred_target
+ 
+        except FileNotFoundError:
+            print("Error: The model must be trained")
