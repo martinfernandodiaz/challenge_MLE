@@ -1,0 +1,37 @@
+name: 'Continuous Integration'
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Google Cloud authentication
+      - name: Set up Google Cloud authentication
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CICD_KEY }}
+
+      # Configure Docker for Google Artifact Registry
+      - name: Configure Docker to use Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev
+
+      # Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/model-microservice/dev-image:1.0.0 .
+
+      #TODO: image tests
+       
+      # Push Docker image to Artifact Registry
+      - name: Push Docker image to Artifact Registry
+        run: |
+          docker push ${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/model-microservice/dev-image:1.0.0
